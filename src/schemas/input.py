@@ -18,4 +18,3 @@ class OutputMessage(BaseModel):
     query: str
     think: str
     answer: str
-    used_docs: list

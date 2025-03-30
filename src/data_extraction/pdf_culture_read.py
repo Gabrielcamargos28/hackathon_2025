@@ -75,32 +75,3 @@ class PDFProcessor:
                 print(f"TXT {path} processado e salvo no ChromaDB com sucesso!")
             except Exception as e:
                 print(f"Erro ao processar {path}: {str(e)}")
-
-def query_groq(self, question: str) -> str:
-        """Envia uma consulta para a API da Groq"""
-        try:
-            response = self.groq_client.chat.completions.create(
-                messages=[
-                    {"role": "system", "content": "Você é um assistente especialista em documentos."},
-                    {"role": "user", "content": question}
-                ],
-                model="deepseek-r1-distill-llama-70b",
-            )
-            return response.choices[0].message.content
-        except Exception as e:
-            return f"Erro na consulta à Groq: {str(e)}"
-
-
-if __name__ == '__main__':
-    # Cria o processador
-    processor = PDFProcessor()
-
-    # Processa todos os PDFs no diretório
-    PDF_PATH = 'src/data_extraction/files/'
-    all_pdfs = glob(os.path.join(PDF_PATH, '*.pdf'))
-
-    if not all_pdfs:
-        print(f"Nenhum PDF encontrado em {PDF_PATH}")
-    else:
-        for pdf in all_pdfs:
-            processor.process_pdf(pdf)
