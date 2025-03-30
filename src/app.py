@@ -44,9 +44,20 @@ def ask_ia(message: InputMessage):
 
     question = f"{context}\nUsuário: {message.message}"
 
+    docs = query_engine.get_relevant_documents(message.message, k=6)
+    
+    return_list = []
+    for i, doc in enumerate(docs):
+        return_list.append({
+            'doc': f'{i + 1}',
+            'author': doc.metadata.get('author'),
+            'total_pages': doc.metadata.get('total_pages'),
+            'page': doc.metadata.get('page'),
+        })
+    
     response = query_engine.answer_question(question)
     think, answer = separar_resposta(response['answer'])
-
+    
     # Adicionar ao histórico
     chat_histories[session_id].append({"user": message.message, "ia": answer})
 
@@ -54,5 +65,5 @@ def ask_ia(message: InputMessage):
         query=message.message,
         think=think,
         answer=answer,
-        used_docs=[]
+        used_docs=return_list
     )

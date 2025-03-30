@@ -10,7 +10,8 @@ if __name__ == '__main__':
 
     FILE_PATH = 'src/data_extraction/files/'
 
-    all_pdfs = glob(FILE_PATH + '*.pdf')
+    all_txts = glob(FILE_PATH + '*.txt')
+    
 
-    for pdf in all_pdfs:
-        pdf_processor.process_pdf(pdf)
+    for txt in all_txts:
+        pdf_processor.process_txt(txt)

@@ -8,7 +8,7 @@ from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_community.vectorstores import Chroma
 from langchain_groq import ChatGroq
 
-from src.config.config import Settings
+from config.config import Settings
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -65,12 +65,11 @@ class RAGQueryEngine:
 
         template = """
         Seu nome é AgroMind, você é um assistente especializado em consultoria agrícola no cerrado portanto deve
-        formular toda a sua resposta em Portugues Brasileiro, inclusive seu pensamento. Sua tarefa é fornecer 
+        formular toda a sua resposta em Portugues Brasileiro, inclusive seu pensamento deve sempre ser em português. Sua tarefa é fornecer 
         ajuda ao que for pedido no contexto. Sua especiliazação são 3 culturas milho, soja e trigo só deve responder se forem
         sobre essas 3 culturas. Sua fonte primária de dados são os documentos fornecidos. Você deve organizar suas 
-        idéias sempre em Português Brasileiro. Sua fonte principal devem ser os documentos, se conseguir responder
-        utilizando apenas os documentos seria a solução ótima. Porém em caso de ausência de informações nos documentos, você pode usar
-        use seu conhecimento prévio para responder a pergunta.
+        idéias sempre em Português Brasileiro. Sua fonte principal deve ser os documentos, se conseguir responder
+        utilizando apenas os documentos seria a solução ótima. Você nunca pode usar seu conhecimento prévio para responder a pergunta.
 
         {context}
         
@@ -152,13 +151,13 @@ if __name__ == "__main__":
     GROQ_API_KEY = Settings().GROQ_API_KEY
 
     # Diretório onde o ChromaDB está armazenado
-    CHROMA_DIR = "src/chroma_db"
+    CHROMA_DIR = "chroma_db"
 
     # Inicializar o motor de consulta
     query_engine = RAGQueryEngine(groq_api_key=GROQ_API_KEY, persist_directory=CHROMA_DIR)
 
     # Exemplo de consulta
-    question = "Qual pragas encontradas no milho"
+    question = "Identifiquei Nematode Assay em uma amostra de solo. O que devo fazer?"
 
     # Opção 1: Apenas buscar documentos para depuração/análise
     print("\n=== Documentos relevantes recuperados ===")
