@@ -35,14 +35,12 @@ class PDFProcessor:
         try:
             print(f"Processando arquivo: {path}")
 
-            # Carrega o documento PDF
+    
             loader = PyPDFLoader(file_path=path)
             documents = loader.load()
 
-            # Divide o texto em chunks
             chunks = self.text_splitter.split_documents(documents)
 
-            # Adiciona os embeddings no banco existente
             self.vectorstore.add_documents(chunks)
             self.vectorstore.persist()
 
@@ -59,14 +57,11 @@ class PDFProcessor:
                 print(f"Arquivo {path} não encontrado.")
                 return
 
-            # Lê o conteúdo do arquivo TXT
             with open(path, 'r', encoding='utf-8') as f:
                 text = f.read()
 
-            # Divide o texto em chunks
             documents = [Document(page_content=chunk) for chunk in self.text_splitter.split_text(text)]
 
-            # Adiciona ao ChromaDB
             self.vectorstore.add_documents(documents)
             self.vectorstore.persist()
 
