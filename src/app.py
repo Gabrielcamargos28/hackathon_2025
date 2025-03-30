@@ -23,7 +23,7 @@ chat_histories = {}
 
 @app.post('/', response_model=OutputMessage, status_code=HTTPStatus.OK)
 def ask_ia(message: InputMessage):
-    session_id = 1
+    session_id = 2
     if session_id not in chat_histories:
         chat_histories[session_id] = []
 
@@ -36,7 +36,7 @@ def ask_ia(message: InputMessage):
         return "", texto.strip()
 
     GROQ_API_KEY = Settings().GROQ_API_KEY
-    CHROMA_DIR = "src/chroma_db"
+    CHROMA_DIR = "chroma_db"
     query_engine = RAGQueryEngine(groq_api_key=GROQ_API_KEY, persist_directory=CHROMA_DIR)
 
     # Criar contexto a partir do histórico
@@ -45,7 +45,8 @@ def ask_ia(message: InputMessage):
     question = f"{context}\nUsuário: {message.message}"
 
     docs = query_engine.get_relevant_documents(message.message, k=6)
-    
+    print('docs:', docs)
+
     return_list = []
     for i, doc in enumerate(docs):
         return_list.append({
