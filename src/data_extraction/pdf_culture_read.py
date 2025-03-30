@@ -4,53 +4,41 @@ from glob import glob
 from groq import Groq
 from langchain.embeddings import HuggingFaceEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_community.document_loaders import PyPDFLoader
 from langchain_community.vectorstores import Chroma
-from nv_ingest import PDFExtractor
-
-from config.config import Settings
 
 
 class PDFProcessor:
     def __init__(self, GROQ_API_KEY):
         # Configuração do embedding model
         self.embedding_model = HuggingFaceEmbeddings(
-            model_name="sentence-transformers/msmarco-distilbert-base-v4"
+            model_name = "sentence-transformers/all-roberta-large-v1"
         )
+
         # Configuração do cliente Groq
         self.groq_client = Groq(api_key=GROQ_API_KEY)
 
         # Configuração do text splitter
         self.text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=1200,
-            chunk_overlap=300
+            chunk_size=1000,  # Tamanho aumentado para melhorar a qualidade dos embeddings
+            chunk_overlap=200  # Overlap aumentado para manter contexto
         )
 
     def process_pdf(self, path: str) -> None:
-        """Processa um único PDF usando NVIDIA Ingest, salva em TXT e armazena embeddings."""
+        """Processa um único PDF e armazena seus embeddings"""
         try:
             print(f"Processando arquivo: {path}")
 
-            # Extrai texto do PDF com NVIDIA Ingest
-            extractor = PDFExtractor()
-            extracted_text = extractor.extract_text(path)
+            # Carrega o documento PDF
+            loader = PyPDFLoader(file_path=path)
+            documents = loader.load()
 
-            if not extracted_text.strip():
-                print(f"Nenhum texto extraído do arquivo {path}. Verifique se é um PDF válido.")
-                return
-
-            # Salva como TXT
-            txt_path = path.replace('.pdf', '.txt')
-            with open(txt_path, 'w', encoding='utf-8') as f:
-                f.write(extracted_text)
-
-            print(f"Texto salvo em: {txt_path}")
-
-            # Divide o texto em chunks para embeddings
-            chunks = self.text_splitter.split_text(extracted_text)
+            # Divide o texto em chunks
+            chunks = self.text_splitter.split_documents(documents)
 
             # Armazena no ChromaDB
-            Chroma.from_texts(
-                texts=chunks,
+            Chroma.from_documents(
+                documents=chunks,
                 embedding=self.embedding_model,
                 persist_directory='src/chroma_db'
             )
@@ -59,11 +47,24 @@ class PDFProcessor:
         except Exception as e:
             print(f"Erro ao processar {path}: {str(e)}")
 
+    def query_groq(self, question: str) -> str:
+        """Envia uma consulta para a API da Groq"""
+        try:
+            response = self.groq_client.chat.completions.create(
+                messages=[
+                    {"role": "system", "content": "Você é um assistente especialista em documentos."},
+                    {"role": "user", "content": question}
+                ],
+                model="deepseek-r1-distill-llama-70b",
+            )
+            return response.choices[0].message.content
+        except Exception as e:
+            return f"Erro na consulta à Groq: {str(e)}"
+
 
 if __name__ == '__main__':
-    GROQ_API_KEY = Settings().GROQ_API_KEY  # Defina sua chave aqui
-
-    processor = PDFProcessor(GROQ_API_KEY)
+    # Cria o processador
+    processor = PDFProcessor()
 
     PDF_PATH = 'src/data_extraction/files/'
     all_pdfs = glob(os.path.join(PDF_PATH, '*.pdf'))
