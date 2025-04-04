@@ -13,4 +13,3 @@ src/chroma_db*
 # Config files
 .env
 assets
-files
